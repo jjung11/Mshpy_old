@@ -19,4 +19,4 @@ Then you can run Mshpy.main as explained in the documentation.
 * path: directory including SW data/sc trace file.
 * mpoff (optional): magnetopause offset (sunward, in Re)
 * bsoff (optional): bow shock offset (sunward, in Re)
-Output would be save to the path.
+Output files will be save to the path.
