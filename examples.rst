@@ -1,7 +1,7 @@
 Examples
 ============
 
-In (i)Python, run:
+In Python, run:
 
 ::
 
