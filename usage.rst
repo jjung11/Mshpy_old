@@ -1,7 +1,7 @@
 Usage
 -----------------------------------------
 
-Main module is Msh_Nstep_master.py
+Main function is Mshpy.main
 
 Args:
     1. path: File directory. For input files, see ``Datasets``
