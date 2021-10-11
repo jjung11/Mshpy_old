@@ -14,7 +14,7 @@ Returns:
     Following files are saved in the path.
 |        1. Msh_MHD_out.txt: MHD-based model result.
 |        Format:
-|        time Bx[nT] By Bz n[cm^-3] T[eV] Vx[km/s] Vy Vz f x[Re] y z
+|        time   Bx[nT]  By  Bz  n[cm^-3]    T[eV]   Vx[km/s]    Vy  Vz  f   x[Re]   y   z
 |        
 |        2. Msh_Soucek_out.txt: Soucek & Escoubet [2012] model plasma velocity results.
 |        Format:
