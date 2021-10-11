@@ -21,9 +21,9 @@ Returns:
         time x[Re] y z f Vx[km/s] Vy Vz
         
         3. Msh_Romashets_out.txt: Romashets et al. [2019] model magnetic field results.
-        Format:
+|        Format:
         time Bx[nT] By Bz |B|
         
         4. Msh_Spreiter_out.txt: Spreiter et al. [1966] model plasma speed, density, and temperature results.
-        Format:
+|        Format:
         time f n[cm^-3] n[cm^-3] T[eV] |V|[km/s]
