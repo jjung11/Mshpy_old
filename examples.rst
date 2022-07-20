@@ -21,6 +21,7 @@ Then you can run Mshpy.main as explained in the documentation.
 1. SW/IMF conditions file
 
 2. sc trace file
+
    For 1 and 2, see 'Datasets' for the detail.
 
 3. MP/BS offset file (Optional)
