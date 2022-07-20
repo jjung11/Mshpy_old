@@ -25,7 +25,9 @@ Then you can run Mshpy.main as explained in the documentation.
 
 3. MP/BS offset file (Optional)
    File containing following information
-   | text format:
+   
+   text format:
+   
    mpoff bsoff
    
    mpoff: Manual magnetopause offset along x axis.
