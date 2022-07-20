@@ -20,3 +20,14 @@ SW/IMF conditions file and spacecraft (sc) trace file are needed.
 * yy/mm/dd x y z, as in SSCWeb (x,y,z in GSE)
 * Notice that you need to choose yy/mm/dd output option instead of yyyy ddd.
 * sc trace file should be named orbit.txt
+
+3. MP/BS offset file (Optional) named 'Msh_offset.txt'
+*   text format:
+*   mpoff bsoff
+  
+   1. mpoff: Manual magnetopause offset along x axis.
+      Magnetopause model for the MHD-based MSH model is Shue et al. 1998,
+      except for the Romashets et al. [2019] model which uses Jellinek et al. 2012 model.
+   
+   2. bsoff: Manual bow shock offset along x axis
+      Bow shock model for the MHD-based MSH model is Jelinek et al. 2012.
