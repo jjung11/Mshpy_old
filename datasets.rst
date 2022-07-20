@@ -23,7 +23,7 @@ SW/IMF conditions file and spacecraft (sc) trace file are needed.
 
 3. MP/BS offset file (Optional) named 'Msh_offset.txt'
 
-*   text format:
+*   text format: (without header)
 *   mpoff bsoff
 
       1.mpoff: Manual magnetopause offset along x axis.
