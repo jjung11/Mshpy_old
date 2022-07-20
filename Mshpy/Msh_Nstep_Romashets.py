@@ -23,6 +23,10 @@ R_0=15.02
 lam=1.17
 epsilon=6.55
 
+R_0_mp=12.82
+lam_mp=1.54
+epsilon_mp=5.26
+
 def appendSpherical_np(xyz):
     ptsnew = np.hstack((xyz,np.empty(xyz.shape)))
     xy = xyz[:,0]**2 + xyz[:,1]**2
@@ -61,6 +65,17 @@ def bsdf_Jelinek(Pd,xyz):
     r[np.isnan(r)]=r0[np.isnan(r)]
     return r
 
+def mpdf_Jelinek(Pd,xyz):
+    a_14=(4*R_0_mp/lam_mp**2*Pd**(-1/epsilon_mp))
+    a_44=(-1/4*lam_mp**2*a_14**2)
+    yz=xyz[:,1]**2+xyz[:,2]**2
+    theta=np.arctan2(np.sqrt(yz),xyz[:,0])
+    cos=np.cos(theta)
+    sin=np.sin(theta)
+    r=np.array((-a_14*cos+np.sqrt(a_14**2*cos**2-4*a_44*sin**2))/(2*sin**2))
+    r0=-a_44/a_14
+    r[np.isnan(r)]=r0[np.isnan(r)]
+    return r
 
 def mpdf(Pd,Bz,xyz):
     yz=xyz[:,1]**2+xyz[:,2]**2
@@ -150,17 +165,24 @@ def OMNIread2(f):
     return omni
 
 def SSCread(f):
-    dateparse=lambda x,y: pd.datetime.strptime(x+' '+y,'%y/%m/%d %H:%M:%S')
-    sat=pd.read_csv(f,header=None,sep='\s+',names=['d','t','x','y','z'],parse_dates={'datetime':[0,1]},date_parser=dateparse)
-    sat.datetime=pd.to_datetime(sat.datetime)
+    sat=pd.read_csv(f,header=None,sep='\s+',names=['d','hms','x','y','z'])
+    sat['datetime']=pd.to_datetime(sat.d+' '+sat.hms,format="%y/%m/%d %H:%M:%S")
+
     return sat
 
 
 
 
-def main(xyz,f_sw,fout,mpdo=0,bsdo=0,model='jel'):
-    mpdo=float(mpdo)
-    bsdo=float(bsdo)
+def main(xyz,f_sw,fout,foff=0,model='jel'):
+    if foff!=0:
+        with open(foff) as f:
+                for line in f:
+                    mpdo,bsdo = line.split()
+                    mpdo=float(mpdo)
+                    bsdo=float(bsdo)
+    else:
+        mpdo=0
+        bsdo=0
 
     if type(xyz)==str:
         xyz=SSCread(xyz)
@@ -179,7 +201,7 @@ def main(xyz,f_sw,fout,mpdo=0,bsdo=0,model='jel'):
     rm=R.from_euler('z',-4,degrees=True)
     xyz_np=(rm.as_matrix()@xyz_np.T).T
 
-    mpd=np.array(mpdf(omni.Pd,omni.Bz,xyz_np))
+    mpd=np.array(mpdf_Jelinek(omni.Pd,xyz_np))
     mpd+=mpdo
 #    bsd=np.array([bsdf(omni.n[i],v_sw[i],Ma[i],B_sw[i],xyz[i])for i in range(np.shape(xyz)[0])])
 
@@ -222,6 +244,7 @@ def main(xyz,f_sw,fout,mpdo=0,bsdo=0,model='jel'):
 
     kmax=4.5
     check=150
+    print('k_max,check')
     while (check>35):
         kmax+=0.5
         k=np.linspace(0.01,kmax,20)

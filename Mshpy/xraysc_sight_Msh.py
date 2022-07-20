@@ -1,4 +1,4 @@
-#!/Users/jjung11/anaconda3/bin/python
+#!/Users/jjung11/opt/miniconda3/bin/python
 # Calculate input for plot_rates.py
 # Written by J.Jung
 
@@ -17,7 +17,7 @@ from scipy.spatial.transform import Rotation as R
 import glob
 import datetime
 
-# Bow Shock
+# Jerab Bow Shock
 a11=.45
 a22=1
 a33=.8
@@ -27,6 +27,11 @@ a24=-2.2
 a34=-.6
 a44=-618
 R0=11.8954
+
+#Jelinek BS
+R_0=15.02
+lam=1.17
+epsilon=6.55
 
 def bsdf(D,f,pts):
 
@@ -96,6 +101,27 @@ def genf(fun,n1,n2,xyz,f,f2):
         outl.append(out)
     outl=np.array(outl)
     return outl
+
+def genf_vec(fun,n1,n2,xyz,f,f2):
+    if f2==-1:
+        out1=fun[n1+7](xyz)
+        out2=fun[n2+7](xyz)
+        out=(out1*(1-f)+out2*f)
+    elif f2==2:
+        out1=fun[n1](xyz)
+        out2=fun[n2](xyz)
+        out=(out1*(1-f)+out2*f)
+    else:
+        out1=fun[n1](xyz)
+        out2=fun[n2](xyz)
+        out=(out1*(1-f)+out2*f)
+        out1=fun[n1+7](xyz)
+        out2=fun[n2+7](xyz)
+        outs=(out1*(1-f)+out2*f)
+        out=f2*out+(1-f2)*outs
+    outl=np.where((xyz[:,2]<0.1) | (xyz[:,2]>0.9), np.nan, out)
+    return outl
+
 
 nfl=[]
 Tfl=[]
@@ -216,7 +242,7 @@ nh0=25
 drad=0.2*6372*1e3
 ri=2.1
 str1=4*np.pi
-crs=6e-16
+crs=1e-15
 
 
 
@@ -232,15 +258,14 @@ f_sw="SW_cond_test.txt"
 #test.close()
 omni=OMNIread2(f_sw)
 D=0.937*(0.846+0.042*omni.B)
+#print(omni)
 f=(91.55/(omni.n*omni.V**2)**(1/6)*(1+D*((5/3-1)*omni.Ma**2+2)/((5/3+1)*(omni.Ma**2-1)))/R0)[0]
 r0=(10.22+1.29*np.tanh(0.184*(omni.Bz+8.14)))*omni.Pd**(-1/6.6)
 alpha=(0.58-0.007*omni.Bz)*(1+0.024*np.log(omni.Pd))
 mp0=mpdf(r0,alpha,np.array([[1,0,0]]))
 bs0=bsdf(D,f,np.array([[0,0,0,1,0,0]]))
-print('Shue/Jerab',mp0,bs0)
-R_0=15.02
-lam=1.17
-epsilon=6.55
+#print('Shue/Jerab',mp0,bs0)
+
 a_14=(4*R_0/lam**2*omni.Pd**(-1/epsilon))[0]
 a_44=(-1/4*lam**2*a_14**2)
 bs0_j=bsdf_Jelinek(a_14,a_44,np.array([[1,0,0]]))
@@ -250,18 +275,23 @@ print('Shue/Jelinek',mp0,bs0_j)
 
 #bsdfv=np.vectorize(bsdf)
 if (omni.n>35).any():print('Warning: Solar wind density goes above 35cm^-3, in which our model was not validated.')
-if (omni.B>15).any():print('Warning: IMF magnitude goes above 15cm^-3, in which our model shows discrepancy with THEMIS data.')
+if (omni.B>15).any():print('Warning: IMF magnitude goes above 15 nT, in which our model shows discrepancy with THEMIS data.')
 
-conditions=[omni.n<=1,(1<omni.n) & (omni.n<=5),(5<omni.n) & (omni.n<10),(10<=omni.n) & (omni.n<15),(15<=omni.n) & (omni.n<20),(20<=omni.n) & (omni.n<25),(25<=omni.n) & (omni.n<30),(30<=omni.n) & (omni.n<35)]
+conditions=[omni.n<=1,(1<omni.n) & (omni.n<=5),(5<omni.n) & (omni.n<10),(10<=omni.n) & (omni.n<15),(15<=omni.n) & (omni.n<20),(20<=omni.n) & (omni.n<25),(25<=omni.n) & (omni.n<30),(30<=omni.n)]
 choices1=[0,0,1,2,3,4,5,6]
 choices2=[0,1,2,3,4,5,6,6]
+#print(conditions,choices1)
 n1=np.select(conditions,choices1)[0]
 n2=np.select(conditions,choices2)[0]
 f1=np.where(n2==1,(omni.n-1)/4,omni.n/5-n1)[0]
 conditions2=[omni.Bz<=-4,(-4<omni.Bz) & (omni.Bz<4), 4<=omni.Bz]
 choices3=[-1,(omni.Bz+4)/8,2]
 f2=np.select(conditions2,choices3)[0]
-print('f1,f2',f1,f2)
+#print(omni.n.values,omni.Bz.values)
+print('n1,n2,f1,f2',n1,n2,f1,f2)
+#n1,n2: MHD run for density
+#f1: fine tuning parameter for density
+#f2: IMF (-1: Southward, 2: Northward, otherwise: in-between)
 
 
 fo=open(fout,'w+')
@@ -288,12 +318,15 @@ for i,the in enumerate(thel):
             y=ysc+y2
             z=zsc+z2
             ro=np.sqrt(x**2+y**2+z**2)
-            phio=np.arctan2(x,y)
-            theo=np.arccos(z/np.sqrt(x**2+y**2+z**2))
+#            phio=np.arctan2(x,y)
+#            theo=np.arccos(z/np.sqrt(x**2+y**2+z**2))
 #            print( ["{0:0.2f}".format(i) for i in [x,y,z]])
             if ro<ri:
                 rate=9999
 #                print(x,y,z)
+                break
+            if ro>30:
+                rate=9999
                 break
             los.append(np.array([x,y,z,ro]))
         los=np.array(los)
@@ -322,11 +355,11 @@ for i,the in enumerate(thel):
 #        print(np.shape(input))
 
         #print(phi,np.shape(nfl),np.shape(n1),np.shape(n2),np.shape(input),np.shape(f),np.shape(f2))
-        n=genf(nfl,n1,n2,input,f1,f2)
-        T=genf(Tfl,n1,n2,input,f1,f2)
-        Vx=genf(Vxfl,n1,n2,input,f1,f2)
-        Vy=genf(Vyfl,n1,n2,input,f1,f2)
-        Vz=genf(Vzfl,n1,n2,input,f1,f2)
+        n=genf_vec(nfl,n1,n2,input,f1,f2)
+        T=genf_vec(Tfl,n1,n2,input,f1,f2)
+        Vx=genf_vec(Vxfl,n1,n2,input,f1,f2)
+        Vy=genf_vec(Vyfl,n1,n2,input,f1,f2)
+        Vz=genf_vec(Vzfl,n1,n2,input,f1,f2)
 #        V_0=np.vstack([Vx,Vy,Vz]).T
 #        V=(rm.as_matrix().T@V_0.T).T
         vth=np.sqrt(3*1.38e-23*(T*11600)/1.6727e-27)*100
@@ -334,20 +367,21 @@ for i,the in enumerate(thel):
         vrel=np.sqrt(vth**2+vbu**2)
         nn=nh0*(10./los[:,-1])**3
         xray=n*vrel*nn*drad*100*crs #eV/cm^3/s
-        rate=np.nansum(xray/str1) #cV/cm^2/s/sr
+        rate=np.nansum(xray/str1) #eV/cm^2/s/sr
 #        np.set_printoptions(precision=3,suppress=True,threshold=sys.maxsize,linewidth=150)
 #        print(np.shape(xyz_np[:,1]),np.shape(n),np.shape(vrel),np.shape(nn),np.shape(xray))
-        sh=np.shape(xyz_np)[0]
+    #    sh=np.shape(xyz_np)[0]
 
     #    index=~np.isnan(n)
     #    print(len(index))
 
-    #    test=np.hstack((pts[:,0:4],f_msh.reshape(sh,1),n.reshape(sh,1),vrel.reshape(sh,1),nn.reshape(sh,1),xray.reshape(sh,1),mpd.reshape(sh,1),bsd.reshape(sh,1)))
+#        test=np.hstack((pts[:,0:4],f_msh.reshape(sh,1),n.reshape(sh,1),vrel.reshape(sh,1),nn.reshape(sh,1),xray.reshape(sh,1),mpd.reshape(sh,1),bsd.reshape(sh,1)))
+        #x y z r f n vrel nn xray mpd bsd
         #print(test[index])
 #        fo2.write(str(test[index]))
 #        fo2.write('\n\n')
-    #    np.savetxt('test.txt',test[index],fmt='%.3f')
-    #    np.savetxt('test_0.txt',test,fmt='%.3f')
+#        np.savetxt('test.txt',test[index],fmt='%.3f')
+#        np.savetxt('test_0.txt',test,fmt='%.3f')
 
         fo.write('%d %d %f %f %f %e\n' % (j,i,r,phi,lat,rate))
 #        print(phi,lat,rate)

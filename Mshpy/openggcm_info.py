@@ -3,12 +3,13 @@
 
 import os
 import sys
+import numpy as np
 HOME=os.getenv("HOME")
 sys.path.append(HOME+"/svn/hkc-project/trunk/lib/")
 
 import locale
 import matplotlib.pyplot as     plt
-from   run_info          import openggcm_run
+#from   run_info          import openggcm_run
 from   datetime         import datetime,timedelta
 
 class mhdtime(object):
@@ -60,7 +61,8 @@ class runinfo(object):
    self.type = s2[1]
    self.mhdt = s2[2]
 
-   times     = openggcm_run(self.run)
+#   times     = openggcm_run(self.run)
+   times     = np.full(3,"1967:01:01:00:00:0.000")
    #print(times)
    self.ti   = times[0]
    self.tf   = times[1]

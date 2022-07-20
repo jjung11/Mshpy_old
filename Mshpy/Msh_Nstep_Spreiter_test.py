@@ -146,14 +146,21 @@ def WINDread(f):
     return omni
 
 def SSCread(f):
-    dateparse=lambda x,y: pd.datetime.strptime(x+' '+y,'%y/%m/%d %H:%M:%S')
-    sat=pd.read_csv(f,header=None,sep='\s+',names=['d','t','x','y','z'],parse_dates={'datetime':[0,1]},date_parser=dateparse)
-    sat.datetime=pd.to_datetime(sat.datetime)
+    sat=pd.read_csv(f,header=None,sep='\s+',names=['d','hms','x','y','z'])
+    sat['datetime']=pd.to_datetime(sat.d+' '+sat.hms,format="%y/%m/%d %H:%M:%S")
+
     return sat
 
-def main(xyz,f_sw,fout,mpdo=0,bsdo=0,model='jel'):
-    mpdo=float(mpdo)
-    bsdo=float(bsdo)
+def main(xyz,f_sw,fout,foff=0,model='jel'):
+    if foff!=0:
+        with open(foff) as f:
+                for line in f:
+                    mpdo,bsdo = line.split()
+                    mpdo=float(mpdo)
+                    bsdo=float(bsdo)
+    else:
+        mpdo=0
+        bsdo=0
 
     if type(xyz)==str:
         xyz=SSCread(xyz)
@@ -203,20 +210,21 @@ def main(xyz,f_sw,fout,mpdo=0,bsdo=0,model='jel'):
     pts_df['phi2']=np.absolute(pts_df.phi)
     input=pts_df[['phi2','f']].to_numpy()
 
-    if (omni.n>35).any(): print('Warning: there is at least one time at which solar wind density goes above 35cm^-3, in which our model was not validated')
-    if (omni.B>15).any(): print('Warning: there is at least one time at which IMF magnitude goes above 15cm^-3, in which our model shows discrepancy with THEMIS data')
+#    if (omni.n>35).any(): print('Warning: there is at least one time at which solar wind density goes above 35cm^-3, in which our model was not validated')
+#    if (omni.B>15).any(): print('Warning: there is at least one time at which IMF magnitude goes above 15cm^-3, in which our model shows discrepancy with THEMIS data')
 
     phi=np.arange(0,128)*np.pi/180
     af=np.arange(0,10)/10
 
-    n1=np.loadtxt('/Volumes/easystore/openggcm_run/Msh_Nstep/Spreiter/Msh_n')
-    T1=np.loadtxt('/Volumes/easystore/openggcm_run/Msh_Nstep/Spreiter/Msh_T')
-    V1=np.loadtxt('/Volumes/easystore/openggcm_run/Msh_Nstep/Spreiter/Msh_V')
+    n1=np.loadtxt('/Volumes/easystore3/code/Mshpy/Spreiter/Msh_n')
+    T1=np.loadtxt('/Volumes/easystore3/code/Mshpy/Spreiter/Msh_T')
+    V1=np.loadtxt('/Volumes/easystore3/code/Mshpy/Spreiter/Msh_V')
 
     nf=RGI((phi,af),n1,bounds_error=False)
     Tf=RGI((phi,af),T1,bounds_error=False)
     Vf=RGI((phi,af),V1,bounds_error=False)
 
+#    print(input)
     n=nf(input)*omni.n.to_numpy()
     T=Tf(input)*omni.Tev.to_numpy()
     V=Vf(input)*omni.V.to_numpy()

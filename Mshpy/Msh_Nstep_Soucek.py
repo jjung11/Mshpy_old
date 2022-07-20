@@ -76,8 +76,10 @@ def KF94R(Pd,Bz,N,V,B,Ma,xyz,f_msh):
 
     R_mp=(10.22+1.29*np.tanh(0.184*(Bz+8.14)))*Pd**(-1/6.6)
     D=0.937*(0.846+0.042*B)
-    R_bs=91.55/(N*V**2)**(1/6)*(1+D*((5/3-1)*Ma**2+2)/((5/3+1)*(Ma**2-1)))
-    b=0.0223*(Pd/1.8)**(1/6)
+#    R_bs=91.55/(N*V**2)**(1/6)*(1+D*((5/3-1)*Ma**2+2)/((5/3+1)*(Ma**2-1)))
+#    b=0.0223*(Pd/1.8)**(1/6)
+    R_bs=R_0*Pd**(-1/epsilon)
+    b=lam**2*Pd**(-1/epsilon)/(4*R_0)
     b_mp=b/(1+4*b*(R_mp-R_bs))
 
     r_mp=(-np.cos(theta)+np.sqrt(np.cos(theta)**2+4*R_mp*b_mp*np.sin(theta)**2))/(2*b_mp*np.sin(theta)**2)
@@ -100,8 +102,10 @@ def KF94R_R(Pd,Bz,N,V,B,Ma,xyz_kf):
     #print(xyz_kf,R_mp,theta,alpha)
     r_mp=R_mp*(2/(1+np.cos(theta)))**alpha
     D=0.937*(0.846+0.042*B)
-    R_bs=91.55/(N*V**2)**(1/6)*(1+D*((5/3-1)*Ma**2+2)/((5/3+1)*(Ma**2-1)))
-    b=0.0223*(Pd/1.8)**(1/6)
+#    R_bs=91.55/(N*V**2)**(1/6)*(1+D*((5/3-1)*Ma**2+2)/((5/3+1)*(Ma**2-1)))
+#    b=0.0223*(Pd/1.8)**(1/6)
+    R_bs=R_0*Pd**(-1/epsilon)
+    b=lam**2*Pd**(-1/epsilon)/(4*R_0)
     b_mp=b/(1+4*b*(R_mp-R_bs))
 
 
@@ -129,8 +133,10 @@ def backtrack(Pd,Bz,N,B,Ma,v_x,v_y,v_z,xyz,f_msh):
     V=np.sqrt(v_x**2+v_y**2+v_z**2)
     R_mp=(10.22+1.29*np.tanh(0.184*(Bz+8.14)))*Pd**(-1/6.6)
     D=0.937*(0.846+0.042*B)
-    R_bs=91.55/(N*V**2)**(1/6)*(1+D*((5/3-1)*Ma**2+2)/((5/3+1)*(Ma**2-1)))
-    bl=0.0223*(Pd/1.8)**(1/6)
+#    R_bs=91.55/(N*V**2)**(1/6)*(1+D*((5/3-1)*Ma**2+2)/((5/3+1)*(Ma**2-1)))
+#    bl=0.0223*(Pd/1.8)**(1/6)
+    R_bs=R_0*Pd**(-1/epsilon)
+    bl=lam**2*Pd**(-1/epsilon)/(4*R_0)
     df=2*R_bs-R_mp-1/(2*bl)
     R_bsl=R_bs-df
     R_mpl=R_mp-df
@@ -257,15 +263,22 @@ def OMNIread2(f):
     return omni
 
 def SSCread(f):
-    dateparse=lambda x,y: pd.datetime.strptime(x+' '+y,'%y/%m/%d %H:%M:%S')
-    sat=pd.read_csv(f,header=None,sep='\s+',names=['d','t','x','y','z'],parse_dates={'datetime':[0,1]},date_parser=dateparse)
-    sat.datetime=pd.to_datetime(sat.datetime)
+    sat=pd.read_csv(f,header=None,sep='\s+',names=['d','hms','x','y','z'])
+    sat['datetime']=pd.to_datetime(sat.d+' '+sat.hms,format="%y/%m/%d %H:%M:%S")
+
     return sat
 
 
-def main(xyz,f_sw,fout,mpdo=0,bsdo=0,model='jel'):
-    mpdo=float(mpdo)
-    bsdo=float(bsdo)
+def main(xyz,f_sw,fout,foff=0,model='jel'):
+    if foff!=0:
+        with open(foff) as f:
+                for line in f:
+                    mpdo,bsdo = line.split()
+                    mpdo=float(mpdo)
+                    bsdo=float(bsdo)
+    else:
+        mpdo=0
+        bsdo=0
 
     if type(xyz)==str:
         xyz=SSCread(xyz)

@@ -28,6 +28,7 @@ a34=-.6
 a44=-618
 R0=11.8954
 
+#Jelinek BS
 R_0=15.02
 lam=1.17
 epsilon=6.55
@@ -179,15 +180,16 @@ def WINDread(f):
     return omni
 
 def SSCread(f):
-    dateparse=lambda x,y: pd.datetime.strptime(x+' '+y,'%y/%m/%d %H:%M:%S')
-    sat=pd.read_csv(f,header=None,sep='\s+',names=['d','t','x','y','z'],parse_dates={'datetime':[0,1]},date_parser=dateparse)
-    sat.datetime=pd.to_datetime(sat.datetime)
+    sat=pd.read_csv(f,header=None,sep='\s+',names=['d','hms','x','y','z'])
+    sat['datetime']=pd.to_datetime(sat.d+' '+sat.hms,format="%y/%m/%d %H:%M:%S")
+
     return sat
 
 def genf(fun,nxyz,f,f2):
     outl=[]
     for i,j,k in zip(nxyz,f,f2):
         if i[2][2]<0.1 or i[2][2]>0.9:
+#        if i[2][2]<0 or i[2][2]>1:
             out=np.nan
         else:
             if k==-1:
@@ -210,13 +212,17 @@ def genf(fun,nxyz,f,f2):
     outl=np.array(outl)
     return outl
 
-def main(xyz,f_sw,fout,mpdo=0,bsdo=0,offsetf=0,model='jel'):
-    mpdo=float(mpdo)
-    bsdo=float(bsdo)
-    if offsetf!=0:
-        with open(offsetf,'w') as file:
-            #print(offsetf)
-            file.write(f'{mpdo} {bsdo}')
+def main(xyz,f_sw,fout,foff=0,model='jel'):
+
+    if foff!=0:
+        with open(foff) as f:
+                for line in f:
+                    mpdo,bsdo = line.split()
+                    mpdo=float(mpdo)
+                    bsdo=float(bsdo)
+    else:
+        mpdo=0
+        bsdo=0
 
 
 
@@ -244,6 +250,7 @@ def main(xyz,f_sw,fout,mpdo=0,bsdo=0,offsetf=0,model='jel'):
     mpd=np.array(mpdf(omni.Pd,omni.Bz,xyz_np))
 #    bsd=np.array([bsdf(omni.n[i],v_sw[i],Ma[i],B_sw[i],xyz[i])for i in range(np.shape(xyz)[0])])
     mpd+=mpdo
+#    print(mpd)
 
     print('Finding BS nodes')
     pts=appendSpherical_np(xyz_np)
@@ -269,8 +276,8 @@ def main(xyz,f_sw,fout,mpdo=0,bsdo=0,offsetf=0,model='jel'):
 
 #    if (omni.n>35).any(): print('Warning: there are at least one time at which solar wind density goes above 35cm^-3, in which our model was not validated')
     if (omni.n>35).any(): print('Warning: there is at least one time at which solar wind density goes above 35cm^-3, in which our model was not validated')
-    if (omni.B>15).any(): print('Warning: there is at least one time at which IMF magnitude goes above 15cm^-3, in which our model shows discrepancy with THEMIS data')
-    conditions=[omni.n<=1,(1<omni.n) & (omni.n<=5),(5<omni.n) & (omni.n<10),(10<=omni.n) & (omni.n<15),(15<=omni.n) & (omni.n<20),(20<=omni.n) & (omni.n<25),(25<=omni.n) & (omni.n<30),(30<=omni.n) & (omni.n<35)]
+    if (omni.B>15).any(): print('Warning: there is at least one time at which IMF magnitude goes above 15 nT, in which our model shows discrepancy with THEMIS data')
+    conditions=[omni.n<=1,(1<omni.n) & (omni.n<=5),(5<omni.n) & (omni.n<10),(10<=omni.n) & (omni.n<15),(15<=omni.n) & (omni.n<20),(20<=omni.n) & (omni.n<25),(25<=omni.n) & (omni.n<30),(30<=omni.n)]
     choices1=[0,0,1,2,3,4,5,6]
     choices2=[0,1,2,3,4,5,6,6]
     n1=np.select(conditions,choices1)
@@ -361,7 +368,7 @@ def main(xyz,f_sw,fout,mpdo=0,bsdo=0,offsetf=0,model='jel'):
 #    print(input[0],test)
 #    np.shape(test)
 
-    print('Interpolation starts')
+    print('Mshpy Interpolation starts')
     Bx=genf(Bxfl,inputn,f,f2)
     print('Bx done')
     By=genf(Byfl,inputn,f,f2)

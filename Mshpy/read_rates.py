@@ -11,12 +11,53 @@ import math
 import locale
 import numpy              	as np
 import matplotlib.pyplot  	as plt
-from   openggcm_info            import *
-from   read_mhd                 import *
+#from   openggcm_info            import *
 from   mpl_toolkits.axes_grid1  import make_axes_locatable
-from   pkg_rates                import rate_vpkg
 #from   scipy                    import interpolate
 
+def rate_vpkg(val):
+  "set colormap, title, and range of variables for mhd plot"
+
+####### xray values
+  if val=='xray':
+    cmap=plt.cm.jet
+    name='Xray Intensity [$keV{}cm^{-2}s^{-1}sr^{-1}$]'
+    name='[$keV{}cm^{-2}s^{-1}sr^{-1}$]'
+    vran=[0,15]
+    nlev=51
+    tick=5
+    ufac=1e-3
+    norm=0
+
+  else  :		# defalut values
+    cmap=plt.cm.jet
+    name=val+' [?]'
+    vran=[0,100.0]
+    nlev=51
+    tick=20.
+    ufac=1.
+    norm=0
+
+
+  if norm==0:   # for linear-scale contour
+     dlev = (vran[1]-vran[0])/(nlev-1)		 	# interval of contour level
+     clev = np.arange(vran[0],vran[1]+dlev,dlev)	# contour levels
+     tlev = np.arange(vran[0],vran[1]+tick,tick) 	# tick levels for the colorbar
+
+  if norm==1: 	# for log-scale contour
+     t1=log10(vran[0])
+     t2=log10(vran[1])
+     dt=log10(tick)
+     print("norm vran: v1,v2,dv=",t1,t2,dt)
+
+     dlev=(t2-t1)/(nlev-1)
+     clev=[ 10**i for i in np.arange(t1,t2+dlev,dlev)]
+     tlev=[ 10**i for i in np.arange(t1,t2+dt,dt) ]
+
+
+  pkg_plot=[name,cmap,ufac,clev,tlev,norm]
+
+  return pkg_plot
 
 def create_xray(fout,fgrd,f3df,dipt,scinfo,xrinfo):
   "create xray file seen from a virtual spacecraft			\
@@ -248,9 +289,9 @@ def read_ena(fi):
   info = [ locale.atof(i) for i in s[3:] ] # xsc,ysc,zsc,xlk,ylk,zlk,ena
   lat  = []
   phi  = []
-  rate1= ndarray((np,nt))
-  rate2= ndarray((np,nt))
-  rate3= ndarray((np,nt))
+  rate1= np.ndarray((np,nt))
+  rate2= np.ndarray((np,nt))
+  rate3= np.ndarray((np,nt))
   rate1.fill(nan)
   rate2.fill(nan)
   rate3.fill(nan)
@@ -286,9 +327,9 @@ def read_xray(fi):
   lat  = []
   phi  = []
   ival = False
-  rate1= ndarray((np_,nt))
-  rate2= ndarray((np_,nt))
-  rate3= ndarray((np_,nt))
+  rate1= np.ndarray((np_,nt))
+  rate2= np.ndarray((np_,nt))
+  rate3= np.ndarray((np_,nt))
   rate1.fill(0)
   rate2.fill(0)
   rate3.fill(0)
@@ -298,8 +339,8 @@ def read_xray(fi):
   for s in l[1:]:
     w =s.split(None)
     if len(w)>2:
-      i1   = locale.atoi(w[0])-1
-      j1   = locale.atoi(w[1])-1
+      i1   = locale.atoi(w[0])
+      j1   = locale.atoi(w[1])
       rad1 = locale.atof(w[2])
       phi1 = locale.atof(w[3])
       lat1 = locale.atof(w[4])
@@ -330,9 +371,9 @@ def read_xraycut(fi):
   lat  = []
   phi  = []
   ival = False
-  rate1= ndarray((np_,nt))
-  rate2= ndarray((np_,nt))
-  rate3= ndarray((np_,nt))
+  rate1= np.ndarray((np_,nt))
+  rate2= np.ndarray((np_,nt))
+  rate3= np.ndarray((np_,nt))
   rate1.fill(0)
   rate2.fill(0)
   rate3.fill(0)
@@ -426,11 +467,11 @@ def read_xcounts(fi):
   sc   = [ locale.atof(i) for i in s[2:] ]
   lat  = []
   phi  = []
-  brate = ndarray((np,nt))
-  xrate = ndarray((np,nt))
-  xblur = ndarray((np,nt))
-  xbfin = ndarray((np,nt))
-  xbsig = ndarray((np,nt))
+  brate = np.ndarray((np,nt))
+  xrate = np.ndarray((np,nt))
+  xblur = np.ndarray((np,nt))
+  xbfin = np.ndarray((np,nt))
+  xbsig = np.ndarray((np,nt))
   for s in l[1:]:
     w =s.split(None)
     if len(w)>2:
@@ -464,14 +505,14 @@ def read_kipcounts(fi):
   sc   = [ locale.atof(i) for i in s[2:] ]	# xsc,ysc,zsc,xlk,ylk,zlk,Rpix,Texp
   lat  = []
   phi  = []
-  xrexp  = ndarray((nthe,nphi))
-  xcount = ndarray((nthe,nphi))
-  xbrate = ndarray((nthe,nphi))
-  xbblur = ndarray((nthe,nphi))
-  xbinst = ndarray((nthe,nphi))
-  xbfin  = ndarray((nthe,nphi))
-  bgblur = ndarray((nthe,nphi))
-  xbsig  = ndarray((nthe,nphi))
+  xrexp  = np.ndarray((nthe,nphi))
+  xcount = np.ndarray((nthe,nphi))
+  xbrate = np.ndarray((nthe,nphi))
+  xbblur = np.ndarray((nthe,nphi))
+  xbinst = np.ndarray((nthe,nphi))
+  xbfin  = np.ndarray((nthe,nphi))
+  bgblur = np.ndarray((nthe,nphi))
+  xbsig  = np.ndarray((nthe,nphi))
 
   for s in l[1:]:
     w =s.split(None)
@@ -557,7 +598,7 @@ def read_psf(fi,plot=False):
   y   = [0.375*i for i in np.arange(-30,31,1) ]
 # x   = [0.1*i for i in np.arange(-30,31,1) ]
 # y   = [0.1*i for i in np.arange(-30,31,1) ]
-  psf = ndarray((nx,ny))
+  psf = np.ndarray((nx,ny))
   psf.fill(0.)
 
   print(nx,ny)
