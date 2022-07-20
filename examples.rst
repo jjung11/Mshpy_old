@@ -14,9 +14,19 @@ Then you can run Mshpy.main as explained in the documentation.
 ::
 
 
-  Mshpy.main(path,mpoff=0,bsoff=0)
+  Mshpy.main(path)
 
-* path: directory including SW data/sc trace file.
-* mpoff (optional): magnetopause offset (sunward, in Re)
-* bsoff (optional): bow shock offset (sunward, in Re)
-Output files will be saved to the path.
+* path: File directory. The directory should includes
+1. SW/IMF conditions file
+2. sc trace file
+For 1 and 2, see 'Datasets' for the detail.
+
+3. MP/BS offset file (Optional)
+File containing following information
+text format:
+mpoff bsoff
+mpoff: Manual magnetopause offset along x axis.
+    Magnetopause model for the MHD-based MSH model is Shue et al. 1998,
+    except for the Romashets et al. [2019] model which uses Jellinek et al. 2012 model.
+bsoff: Manual bow shock offset along x axis
+    Bow shock model for the MHD-based MSH model is Jelinek et al. 2012.
