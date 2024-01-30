@@ -2,7 +2,7 @@ Datasets
 =============
 
 MHD-based model data files (*.npy) can be found in ``/modeling/cn`` and
-``/modeling/cs``.
+``/modeling/cs`` and it should be downloaded separately, on the directory that the code will be run.
 
 SW/IMF conditions file and spacecraft (sc) trace file are needed.
 
