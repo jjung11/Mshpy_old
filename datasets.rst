@@ -17,7 +17,7 @@ SW/IMF conditions file and spacecraft (sc) trace file are needed.
 2. sc trace file
 
 * text format: (without header)
-* yy/mm/dd x y z, as in SSCWeb (x,y,z in GSE)
+* yy/mm/dd HH:MM:SS x y z, as in SSCWeb (x,y,z in GSE)
 * Notice that you need to choose yy/mm/dd output option instead of yyyy ddd.
 * sc trace file should be named orbit.txt
 
