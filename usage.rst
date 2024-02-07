@@ -5,8 +5,8 @@ Main function is Mshpy.msh_param, which provides magnetosheath parameters along 
 
 Args:
     1. path: File directory to save outputs.
-    2. Start time
-    3. End time
+    2. Start time: in the format of '2012-03-01T02:00'
+    3. End time: in the same format
     4. Spacecraft name. It should be same as one used in SscWs. See https://sscweb.gsfc.nasa.gov/WebServices/REST/jupyter/SscWsExample.html.
     5. mpoff: Optional; Manual magnetopause offset along x axis.
         Magnetopause model for the MHD-based MSH model is Shue et al. 1998.
