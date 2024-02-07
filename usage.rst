@@ -1,17 +1,20 @@
 Usage
 -----------------------------------------
 
-Main function is Mshpy.main
+Main function is Mshpy.msh_param, which provides magnetosheath parameters along certain spacecraft orbit.
 
 Args:
-    1. path: File directory. For input files, see ``Datasets``
-    2. mpoff: Optional; Manual magnetopause offset along x axis.
+    1. path: File directory to save outputs.
+    2. Start time
+    3. End time
+    4. Spacecraft name. It should be same as one used in SscWs. See https://sscweb.gsfc.nasa.gov/WebServices/REST/jupyter/SscWsExample.html.
+    5. mpoff: Optional; Manual magnetopause offset along x axis.
         Magnetopause model for the MHD-based MSH model is Shue et al. 1998.
-    3. bsoff: Optional; Manual bow shock offset along x axis
+    6. bsoff: Optional; Manual bow shock offset along x axis
         Bow shock model for the MHD-based MSH model is Jelinek et al. 2012
 
 Returns:
-    Following files are saved in the path.
+    Following files are saved in the 'path'.
 1. Msh_MHD_out.txt: MHD-based model result.
         
     Format:
